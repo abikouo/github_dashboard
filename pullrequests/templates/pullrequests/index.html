@@ -1,0 +1,122 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <title>Pull Requests dashboard</title>
+    <style>
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        p {
+            font-size: 18px;
+            line-height: 1.6;
+            width: 60%;
+            margin: 0 auto;
+            text-align: justify;
+        }
+    </style>
+</head>
+
+<head>
+    <meta charset="UTF-8">
+    <style type="text/css">
+        body {
+            background-color: #f6f6ff;
+            font-family: Calibri, Myriad;
+        }
+
+        #main {
+            width: 780px;
+            padding: 20px;
+            margin: auto;
+        }
+
+        table.collection {
+            margin: auto;
+            width: 800px;
+            border-collapse: collapse;
+            border: 1px solid #fff;
+            /*for older IE*/
+            border-style: solid;
+        }
+
+        table.collection thead th {
+            padding: 8px;
+            background-color: #f6f9f4;
+            font-size: large;
+        }
+
+        table.collection thead th#thRepository {
+            width: 60%;
+        }
+
+        table.collection thead th#thNumber {
+            width: 20%;
+        }
+
+        table.collection th,
+        table.collection td {
+            padding: 3px;
+            border-width: 1px;
+            border-style: solid;
+            border-color: #f79646 #ccc;
+            font-size: large;
+        }
+
+        table.collection td {
+            text-align: center;
+        }
+
+        table.collection tbody th {
+            text-align: center;
+            font-weight: normal;
+        }
+
+        table.collection tfoot {
+            font-weight: bold;
+            font-size: large;
+            background-color: #687886;
+            color: #fff;
+        }
+
+        table.collection tr.even {
+            background-color: #fde9d9;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Pull Requests Dashboard</h1>
+    <div id="main">
+        <table class="collection">
+            <thead>
+                <tr>
+                    <th id="thRepository">Repository Name</th>
+                    <th id="thNumber">Team Pull requests</th>
+                    <th id="thNumber">Total Pull requests</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for col in collections %}
+                <tr>
+                    <th><a href="/pullrequests/{{ col.short_name }}/">{{ col.short_name }}</a></th>
+                    <td>{{ col.number_prs }}</td>
+                    <td>{{ col.total_prs }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th>Total</th>
+                    <td>{{ summary.number_prs }}</td>
+                    <td>{{ summary.total_prs }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,23 @@
+collections:
+  - ansible-collections/amazon.aws
+  - ansible-collections/amazon.cloud
+  - ansible-collections/cloud.common
+  - ansible-collections/cloud.terraform
+  - ansible-collections/community.aws
+  - openshift/community.okd
+  - ansible-collections/community.vmware
+  - ansible-collections/kubernetes.core
+  - ansible-collections/pravic
+  - ansible-collections/vmware.vmware_rest
+  - redhat-cop/cloud.aws_ops
+  - redhat-cop/cloud.aws_troubleshooting
+  - redhat-cop/cloud.azure_ops
+
+users:
+  - abikouo
+  - jillr
+  - alinabuzachis
+  - mandar242
+  - GomathiselviS
+  - gravesm
+  - hakbailey
