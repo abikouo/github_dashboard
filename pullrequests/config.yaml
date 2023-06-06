@@ -9,9 +9,13 @@ collections:
   - ansible-collections/kubernetes.core
   - ansible-collections/pravic
   - ansible-collections/vmware.vmware_rest
+  - ansible/ansible-zuul-jobs
   - redhat-cop/cloud.aws_ops
   - redhat-cop/cloud.aws_troubleshooting
   - redhat-cop/cloud.azure_ops
+  - ansible/zuul-config
+  - ansible/terraform-provider-ansible
+  - ansible-network/github_actions
 
 users:
   - abikouo

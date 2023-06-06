@@ -95,6 +95,7 @@
             <thead>
                 <tr>
                     <th id="thRepository">Repository Name</th>
+                    <th id="thNumber">Recent Pull requests (less than 24hours)</th>
                     <th id="thNumber">Team Pull requests</th>
                     <th id="thNumber">Total Pull requests</th>
                 </tr>
@@ -103,6 +104,11 @@
                 {% for col in collections %}
                 <tr>
                     <th><a href="/pullrequests/{{ col.short_name }}/">{{ col.short_name }}</a></th>
+                    {% if col.recent_prs == 0 %}
+                    <td>{{ col.recent_prs }}</td>
+                    {% else %}
+                    <td><font color="green">{{ col.recent_prs }}</font></td>
+                    {% endif %}
                     <td>{{ col.number_prs }}</td>
                     <td>{{ col.total_prs }}</td>
                 </tr>
@@ -111,6 +117,7 @@
             <tfoot>
                 <tr>
                     <th>Total</th>
+                    <td>{{ summary.recent_prs }}</td>
                     <td>{{ summary.number_prs }}</td>
                     <td>{{ summary.total_prs }}</td>
                 </tr>

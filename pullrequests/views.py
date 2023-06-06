@@ -65,14 +65,13 @@ def read_config():
 
 def compute_age(created_at):
     delta = datetime.now() - created_at
-    if delta.days == 0:
-        return "less than 1 day"
-    return "{0} day(s)".format(delta.days)
+    return str(delta).split(".", maxsplit=1)[0]
 
 
 def pr_to_dict(pr):
     return {
         "created_at": pr.created_at,
+        "age_days": (datetime.utcnow() - pr.created_at).days,
         "age": compute_age(pr.created_at),
         "changed_files": pr.changed_files,
         "title": pr.title,
@@ -128,6 +127,7 @@ def index(request):
 
     config = read_config()
     collections = []
+    now = datetime.utcnow()
     for item in config.get("collections"):
         team_prs, total_prs = get_pull_requests(item, config.get("users"))
         collections.append(
@@ -136,6 +136,7 @@ def index(request):
                 "name": item,
                 "number_prs": len(team_prs),
                 "total_prs": total_prs,
+                "recent_prs": len([pr for pr in team_prs if (now - pr.created_at).days == 0]),
             }
         )
 
@@ -144,6 +145,7 @@ def index(request):
         "collections": collections,
         "summary": {
             "number_prs": sum([item.get("number_prs") for item in collections]),
+            "recent_prs": sum([item.get("recent_prs") for item in collections]),
             "total_prs": sum([item.get("total_prs") for item in collections]),
         },
     }
