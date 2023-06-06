@@ -16,6 +16,8 @@ collections:
   - ansible/zuul-config
   - ansible/terraform-provider-ansible
   - ansible-network/github_actions
+  - ansible-community/ansible.content_builder
+  - mattclay/aws-terminator
 
 users:
   - abikouo
