@@ -2,4 +2,4 @@ aws_region: us-east-1
 resource_prefix: "gh-dashboard-01"
 aws_profile: ansible
 node_port: 30090
-github_token: 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
+github_token: xxxxx
