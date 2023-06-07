@@ -1,0 +1,44 @@
+- name: Create GPG key temp directory
+  tempfile:
+    prefix: "GPG_keys"
+    state: directory
+  register: gpg_key_tempdir
+
+- name: Upload GPG keys
+  copy:
+    content: "{{ zj_item['data'] }}"
+    dest: "{{ gpg_key_tempdir.path }}/key-{{ zj_idx }}.gpg"
+    mode: 0644
+  loop: "{{ repositories_keys }}"
+  loop_control:
+    loop_var: zj_item
+    index_var: zj_idx
+  when: "'data' in zj_item"
+
+- name: Import GPG keys
+  become: true
+  rpm_key:
+    key: "{{ ('url' in zj_item) | ternary(zj_item['url'], ('data' in zj_item) | ternary(gpg_key_tempdir.path + '/key-' ~ zj_idx ~ '.gpg', zj_item['key'])) }}"
+    state: present
+  loop: "{{ repositories_keys }}"
+  loop_control:
+    loop_var: zj_item
+    index_var: zj_idx
+
+- name: Remove GPG temp directory
+  file:
+    state: absent
+    path: '{{ gpg_key_tempdir.path }}'
+
+- name: Add repositories
+  become: true
+  yum_repository:
+    name: "{{ zj_item['name'] }}"
+    file: "{{ zj_item['file'] | default(zj_item['name']) }}"
+    description: "{{ zj_item['description'] | default(omit) }}"
+    baseurl: "{{ zj_item['baseurl'] | default(omit) }}"
+    gpgcheck: "{{ zj_item['gpgcheck'] | default(omit) }}"
+    gpgkey: "{{ zj_item['gpgkey'] | default(omit) }}"
+  loop: "{{ repositories_list }}"
+  loop_control:
+    loop_var: zj_item

@@ -1,0 +1,8 @@
+---
+plugin: amazon.aws.aws_ec2
+aws_profile: 'ansible'
+regions:
+- 'us-east-1'
+filters:
+  tag:Name:
+  - 'gh-dashboard-01-instance'

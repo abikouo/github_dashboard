@@ -1,0 +1,93 @@
+---
+
+- name: Gather variables for each operating system
+  include_vars: "{{ zj_distro_os }}"
+  loop_control:
+    loop_var: zj_distro_os
+  with_first_found:
+    - skip: true
+      files:
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_version | lower }}.yaml"
+        - "{{ ansible_distribution | lower }}-{{ ansible_distribution_major_version | lower }}.yaml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_major_version | lower }}.yaml"
+        - "{{ ansible_distribution | lower }}.yaml"
+        - "{{ ansible_os_family | lower }}-{{ ansible_distribution_version.split('.')[0] }}.yaml"
+        - "{{ ansible_os_family | lower }}.yaml"
+  tags:
+    - always
+
+- name: Sanity check for distro selection
+  fail:
+    msg: >-
+      This role is not known to be compatible with this distro and no packages have been provided
+      for installation. Check the inventory and deployment target settings. Make sure facts are
+      being gathered prior to executing this role.
+  when:
+    - not (docker_distro_vars_loaded | bool)
+    - not docker_distro_packages
+
+- name: Sanity check for distro install
+  fail:
+    msg: >-
+      The docker distro package list contains no packages and the variable `use_upstream_docker`
+      has been set to "{{ use_upstream_docker }}". To install docker at least one package will be
+      required. Please check your settings.
+      docker_distro_packages = {{ docker_distro_packages }}
+  when:
+    - not docker_distro_packages
+    - not (use_upstream_docker | bool)
+
+- name: Sanity check for upstream install
+  fail:
+    msg: >-
+      The docker upstream package list contains no packages and the variable `use_upstream_docker`
+      has been set to "{{ use_upstream_docker }}". To install docker at least one package will be
+      required. Please check your settings.
+      docker_upstream_distro_packages = {{ docker_upstream_distro_packages }}
+  when:
+    - not docker_upstream_distro_packages
+    - use_upstream_docker | bool
+
+- name: Sanity check for upstream install mirrors
+  fail:
+    msg: >-
+      The variable `docker_mirror_base_url` is null, and upstream installation has been enabled.
+      Check your settings.
+  when:
+    - not docker_mirror_base_url
+    - use_upstream_docker | bool
+
+- name: Include tasks for docker install
+  include_tasks: "docker-{{ (use_upstream_docker | bool) | ternary('upstream', 'distro') }}.yaml"
+
+- name: Install docker-compose
+  become: true
+  package:
+    name: docker-compose
+    state: present
+  when: docker_compose_install | bool
+
+- name: Flush handlers before role exit
+  meta: flush_handlers
+
+- name: Validate ability to talk with docker
+  command: docker ps
+  changed_when: false
+  args:
+    warn: no
+
+- name: Get version details
+  command: docker version
+  register: docker_installed_version
+
+- name: Dump installed docker details
+  debug:
+    msg: '{{ docker_installed_version }}'
+
+- name: Use buildset registry
+  include_role:
+    name: use-buildset-registry
+  vars:
+    buildset_registry_docker_user: root
+  when:
+    - docker_use_buildset_registry | bool

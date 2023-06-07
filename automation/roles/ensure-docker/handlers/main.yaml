@@ -1,0 +1,33 @@
+---
+- name: Stop docker.socket to avoid any conflict
+  become: true
+  service:
+    name: docker.socket
+    enabled: yes
+    state: stopped
+  listen: Restart docker
+  failed_when: false
+
+- name: Assure docker service is running
+  become: true
+  service:
+    name: docker
+    enabled: yes
+    state: started
+  listen: Restart docker
+
+- name: Assure docker.socket service is running
+  become: true
+  service:
+    name: docker.socket
+    enabled: yes
+    state: started
+  listen: Restart docker
+  failed_when: false
+
+- name: Correct group ownership on docker sock
+  become: true
+  file:
+    path: /var/run/docker.sock
+    group: "{{ docker_group }}"
+  listen: Restart docker

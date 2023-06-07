@@ -1,0 +1,53 @@
+---
+- name: create the resource group
+  azure.azcollection.azure_rm_resourcegroup:
+    name: "{{ azure_resource_group }}"
+    location: "{{ azure_region }}"
+
+- name: create the azure virtual network
+  azure.azcollection.azure_rm_virtualnetwork:
+    name: "{{ azure_virtual_network }}"
+    address_prefixes_cidr: "{{ azure_vnet_address_prefixes_cidr }}"
+    resource_group: "{{ azure_resource_group }}"
+
+- name: create the azure subnet
+  azure.azcollection.azure_rm_subnet:
+    name: "{{ azure_subnet }}"
+    virtual_network: "{{ azure_virtual_network }}"
+    address_prefix_cidr: "{{ azure_subnet_address_prefixes_cidr }}"
+    resource_group: "{{ azure_resource_group }}"
+
+- name: create a public ip for the virtual machine
+  azure.azcollection.azure_rm_publicipaddress:
+    resource_group: "{{ azure_resource_group }}"
+    allocation_method: static
+    name: "{{ azure_public_ip }}"
+    sku: Basic
+  register: public_ip
+
+- name: create a network interface
+  azure.azcollection.azure_rm_networkinterface:
+    name: "{{ azure_vm_nic }}"
+    resource_group: "{{ azure_resource_group }}"
+    virtual_network: "{{ azure_virtual_network }}"
+    subnet_name: "{{ azure_subnet }}"
+    ip_configurations:
+      - name: public_ip
+        public_ip_address_name: "{{ azure_public_ip }}"
+
+- name: create virtual machine
+  azure.azcollection.azure_rm_virtualmachine:
+    resource_group: "{{ azure_resource_group }}"
+    name: "{{ azure_vm_name }}"
+    vm_size: "{{ azure_vm_size }}"
+    managed_disk_type: Standard_LRS
+    os_type: Linux
+    image: "{{ azure_vm_image.centos }}"
+    admin_username: "ansible"
+    admin_password: "4fB5#In3@ueO7"
+    ssh_password_enabled: true
+    virtual_network_name: "{{ azure_virtual_network }}"
+    subnet_name: "{{ azure_subnet }}"
+    network_interface_names:
+      - resource_group: "{{ azure_resource_group }}"
+        name: "{{ azure_vm_nic }}"

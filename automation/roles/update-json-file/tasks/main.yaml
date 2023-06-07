@@ -1,0 +1,57 @@
+- name: Check if file exists
+  stat:
+    path: '{{ update_json_file_name }}'
+  register: _stat
+
+- name: Load existing file
+  when: _stat.stat.exists
+  slurp:
+    path: '{{ update_json_file_name }}'
+  register: _file
+
+- name: Parse exisiting file
+  when: _stat.stat.exists
+  set_fact:
+    _config: "{{ _file.content | b64decode | from_json }}"
+
+- name: Set default for non existing file
+  when: not _stat.stat.exists
+  set_fact:
+    _config: '{{ update_json_file_default }}'
+
+- name: Combine new configuration
+  set_fact:
+    _config: "{{ _config | combine(update_json_file_combine) }}"
+
+- name: Debug _config variable
+  debug:
+    var: _config
+  when: update_json_file_debug
+
+- name: Assure we have a target directory
+  when: update_json_file_name | dirname
+  block:
+    - name: Check if target directory exists
+      stat:
+        path: "{{ update_json_file_name | dirname }}"
+      register: _result
+
+    - name: Create target directory
+      file:
+        path: "{{ update_json_file_name | dirname }}"
+        state: directory
+        mode: '{{ update_json_dir_mode | default(omit) }}'
+        owner: '{{ update_json_file_owner | default(omit) }}'
+        group: '{{ update_json_file_group | default(omit) }}'
+        recurse: yes
+      become: '{{ update_json_file_become }}'
+      when: not _result.stat.exists
+
+- name: Save new file
+  copy:
+    content: "{{ _config | to_nice_json }}"
+    dest: '{{ update_json_file_name }}'
+    mode: '{{ update_json_file_mode | default(omit) }}'
+    owner: '{{ update_json_file_owner | default(omit) }}'
+    group: '{{ update_json_file_group | default(omit) }}'
+  become: '{{ update_json_file_become }}'

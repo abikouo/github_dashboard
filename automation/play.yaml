@@ -1,0 +1,89 @@
+- name: Generate inventory file
+  hosts: localhost
+  gather_facts: false
+
+  module_defaults:
+    group/aws:
+      aws_profile: "{{ aws_profile }}"
+      aws_access_key_id: "{{ aws_access_key_id | default(omit) }}"
+      aws_secret_access_key: "{{ aws_secret_access_key | default(omit) }}"
+      aws_security_token: "{{ security_token | default(omit) }}"
+      region: "{{ aws_region }}"
+
+  pre_tasks:
+    - name: Set inventory host file
+      set_fact:
+        inventory_file: "{{ lookup('env', 'ANSIBLE_INVENTORY') }}"
+
+    - name: Remove existing inventory file
+      file:
+        state: absent
+        path: "{{ inventory_file }}"
+      ignore_errors: true
+
+  roles:
+    - role: aws_manage_virtual_machine
+
+  tasks:
+    - name: Generate inventory file
+      copy:
+        dest: "{{ inventory_file }}"
+        content: "{{ lookup('template', 'inventory.yml.j2') }}"
+
+    - meta: refresh_inventory
+
+- hosts: aws_ec2
+  gather_facts: true
+
+  vars:
+    ansible_ssh_user: fedora
+    ansible_ssh_common_args: '-o "UserKnownHostsFile=/dev/null" -o StrictHostKeyChecking=no'
+    docker_image_name: github_app
+    node_port_value: "{{ node_port | default(30090) }}"
+
+  tasks:
+    - name: Run ensure-docker role
+      include_role:
+        name: ensure-docker
+
+    - name: Ensure git is installed
+      yum:
+        name: 
+          - git
+        state: present
+      become: true
+
+    - name: Remove existing application files
+      file:
+        state: absent
+        path: ~/app
+      ignore_errors: true
+
+    - name: Git clone application
+      shell: git clone https://github.com/abikouo/github_dashboard.git ~/app
+
+    - name: Build container image
+      shell: "docker build -t {{ docker_image_name }} ."
+      args:
+        chdir: ~/app
+        executable: /bin/bash
+
+    - name: Start application
+      docker_manage_container:
+        state: present
+        container_name: github-app
+        container_image: "{{ docker_image_name }}"
+        container_port: 8000
+        node_port: "{{ node_port_value }}"
+        env_vars:
+          - "GITHUB_TOKEN={{ github_token }}"
+
+    - set_fact:
+        application_url: "http://{{ inventory_hostname }}:{{ node_port_value }}/pullrequests"
+
+    - name: Ping application
+      shell: "curl {{ application_url }}/pravic"
+      delegate_to: localhost
+
+    - debug:
+        msg: "Application url => {{ application_url }}"

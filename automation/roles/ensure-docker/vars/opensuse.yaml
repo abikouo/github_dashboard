@@ -1,0 +1,17 @@
+---
+
+_docker_distro_packages:
+  - docker
+
+_docker_upstream_distro_required_packages: []
+
+_docker_upstream_distro_packages: []
+
+docker_repo_template: null
+
+docker_distro_vars_loaded: true
+
+_docker_mirror_base_url: null
+
+# OpenSUSE has no upstream mirror
+use_upstream_docker: false

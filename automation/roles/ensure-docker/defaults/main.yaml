@@ -1,0 +1,14 @@
+use_upstream_docker: True
+docker_group: docker
+docker_use_buildset_registry: false
+# NOTE(cloudnull): Packages are loaded through distro specific variables.
+#                  The default option will return an empty list which
+#                  allows folks to override these lists as they see fit.
+docker_distro_packages: "{{ _docker_distro_packages | default([]) }}"
+docker_compose_install: false
+docker_upstream_distro_packages: "{{ _docker_upstream_distro_packages | default([]) }}"
+docker_upstream_distro_required_packages: "{{ _docker_upstream_distro_required_packages | default([]) }}"
+docker_upstream_distro_remove_packages: "{{ _docker_upstream_distro_remove_packages | default([]) }}"
+docker_update_channel: stable
+docker_download_fqdn: download.docker.com
+docker_mirror_base_url: "{{ _docker_mirror_base_url | default('') }}"

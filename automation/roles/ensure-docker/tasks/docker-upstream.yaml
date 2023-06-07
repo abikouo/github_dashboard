@@ -1,0 +1,39 @@
+---
+- name: Not Implemented
+  fail:
+    msg: This set of tasks has not been implemented.
+  when: ansible_pkg_mgr == 'zypper'
+
+- name: Upstream block
+  become: true
+  block:
+    - name: Set up docker mirrors
+      include_role:
+        name: use-docker-mirror
+
+    - name: Add all repositories
+      include_role:
+        name: ensure-package-repositories
+      vars:
+        repositories_keys: "{{ _docker_keys }}"
+        repositories_list: "{{ _docker_repos }}"
+
+    - name: Install pre-reqs
+      package:
+        name: "{{ _docker_upstream_distro_required_packages }}"
+        state: present
+
+    - name: Remove packages
+      package:
+        name: "{{ docker_upstream_distro_remove_packages }}"
+        state: absent
+      when: docker_upstream_distro_remove_packages
+
+    - name: Install upstream docker using package
+      package:
+        name: "{{ docker_upstream_distro_packages }}"
+        state: present
+      notify: Restart docker
+
+    - name: Setup docker
+      include_tasks: docker-setup.yaml

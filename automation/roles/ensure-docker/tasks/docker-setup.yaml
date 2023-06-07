@@ -1,0 +1,63 @@
+---
+
+- name: Ensure "docker" group exists
+  group:
+    name: "{{ docker_group }}"
+    state: present
+
+- name: Add user to docker group
+  user:
+    name: "{{ ansible_user }}"
+    groups:
+      - "{{ docker_group }}"
+    append: yes
+
+- name: Update docker daemon proxy configuration
+  when: docker_userland_proxy is defined
+  include_role:
+    name: update-json-file
+  vars:
+    update_json_file_name: /etc/docker/daemon.json
+    update_json_file_combine:
+      userland-proxy: "{{ docker_userland_proxy }}"
+    update_json_file_become: true
+
+# Docker defaults to a MTU of 1500, which causes problems when the
+# main interface has a MTU less than that.  Cloud environments often
+# have this, one good example is OpenDev's Linaro ARM64 cloud.
+# https://storyboard.openstack.org/#!/story/2008230
+- name: Lower default MTU
+  when: ansible_default_ipv4.mtu < 1500
+  include_role:
+    name: update-json-file
+  vars:
+    update_json_file_name: /etc/docker/daemon.json
+    update_json_file_combine:
+      mtu: 1400
+    update_json_file_become: true
+
+- name: Get the status of the docket.socket unit
+  command: systemctl is-failed docker.socket  # noqa command-instead-of-module
+  failed_when: false
+  become: true
+  register: _docker_socket_status
+
+- name: Get the status of the docket unit
+  command: systemctl is-failed docker  # noqa command-instead-of-module
+  failed_when: false
+  become: true
+  register: _docker_status
+
+- name: Restart docker
+  when: >-
+      (docker_userland_proxy is defined) or
+      (ansible_default_ipv4.mtu < 1500) or
+      (_docker_socket_status.stdout != 'active') or
+      (_docker_socket_status.stdout != 'active')
+  debug:
+    msg: 'Trigger a Docker restart'
+  changed_when: true
+  notify: Restart docker
+
+- name: Reset ssh connection to pick up docker group
+  meta: reset_connection

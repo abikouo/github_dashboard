@@ -1,0 +1,26 @@
+---
+operation: create
+azure_region: eastus
+
+# Networking variables
+azure_virtual_network: "test-vnet-01"
+azure_subnet: "test-subnet-01"
+azure_vnet_address_prefixes_cidr:
+  - 10.1.0.0/16
+azure_subnet_address_prefixes_cidr: 10.1.0.0/24
+azure_security_group: "test-nsg-01"
+azure_public_ip: "public-ip-01"
+azure_vm_nic: "test-vm-nic-01"
+azure_vm_name: "test-vm-01"
+azure_vm_image:
+  rhel:
+    offer: RHEL
+    publisher: RedHat
+    sku: 7-LVM
+    version: latest
+  centos:
+    offer: CentOS
+    publisher: OpenLogic
+    sku: 7.5
+    version: latest
+azure_vm_size: "Standard_DS4_v2"

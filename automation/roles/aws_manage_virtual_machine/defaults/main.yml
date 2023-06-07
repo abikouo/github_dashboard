@@ -1,0 +1,19 @@
+---
+operation: 'create'
+aws_vpc_name: '{{ resource_prefix }}-vpc'
+aws_vpc_cidr: '172.1.0.0/16'
+aws_subnet_cidr: '172.1.1.0/24'
+aws_security_group: '{{ resource_prefix }}-sg'
+aws_security_group_rules:
+  - cidr_ip: 0.0.0.0/0
+    proto: -1
+aws_key_pair: '{{ resource_prefix }}-keypair'
+aws_ec2_name: '{{ resource_prefix }}-instance'
+aws_ec2_ami_filters:
+  architecture: x86_64
+  virtualization-type: hvm
+  root-device-type: ebs
+  name: "Fedora-Cloud-Base-37-*"
+aws_internet_gw_tags:
+  Subnet: Public
+  Name: "{{ resource_prefix }}-gateway"

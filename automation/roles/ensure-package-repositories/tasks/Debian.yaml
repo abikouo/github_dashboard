@@ -1,0 +1,32 @@
+- name: Install GnuPG for apt-key
+  become: true
+  when: repositories_keys | length > 0
+  apt:
+    name: gnupg
+    state: present
+
+- name: Add apt keys
+  become: true
+  apt_key:
+    url: "{{ zj_item['url'] | default(omit) }}"
+    data: "{{ zj_item['data'] | default(omit) }}"
+  loop: "{{ repositories_keys }}"
+  loop_control:
+    loop_var: zj_item
+
+- name: Add apt repositories
+  become: true
+  apt_repository:
+    repo: "{{ zj_item['repo'] | default(omit) }}"
+    state: present
+    update_cache: no
+  loop: "{{ repositories_list }}"
+  loop_control:
+    loop_var: zj_item
+  register: _add_apt_repos
+
+- name: Update APT cache  # noqa no-handler
+  become: true
+  apt:
+    update_cache: yes
+  when: _add_apt_repos is changed

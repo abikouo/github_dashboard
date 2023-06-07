@@ -1,0 +1,19 @@
+---
+plugin: amazon.aws.aws_ec2
+{% if aws_access_key_id | default(false) %}
+aws_access_key_id: '{{ aws_access_key_id }}'
+{% endif %}
+{% if aws_secret_access_key | default(false) %}
+aws_secret_access_key: '{{ aws_secret_access_key }}'
+{% endif %}
+{% if aws_profile | default(false) %}
+aws_profile: '{{ aws_profile }}'
+{% endif %}
+{% if security_token | default(false) %}
+aws_security_token: '{{ security_token }}'
+{% endif %}
+regions:
+- '{{ aws_region | default("us-east-1") }}'
+filters:
+  tag:Name:
+  - '{{ resource_prefix }}-instance'
